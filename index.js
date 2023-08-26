@@ -25,7 +25,9 @@ app.use((req, res, next) => {
 });
 
 app.all("/:url(*)", (req, res) => {
-  const targetUrl = req.params.url;
+  let targetUrl = req.params.url;
+
+  targetUrl = targetUrl.replace(/:\//g, "://");
 
   const targetProtocol = targetUrl.startsWith("https") ? https : http;
 
