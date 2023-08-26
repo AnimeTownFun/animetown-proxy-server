@@ -1,10 +1,12 @@
+const express = require("express");
 const http = require("http");
 const https = require("https");
 const httpProxy = require("http-proxy");
-const url = require("url");
+
+const app = express();
 const proxy = httpProxy.createProxyServer({});
 
-const server = http.createServer((req, res) => {
+app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -16,16 +18,17 @@ const server = http.createServer((req, res) => {
   );
 
   if (req.method === "OPTIONS") {
-    res.writeHead(200);
-    res.end();
-    return;
+    res.sendStatus(200);
+  } else {
+    next();
   }
+});
 
-  const targetUrl = req.url.slice(1); // Remove the leading '/'
+app.all("/:url(*)", (req, res) => {
+  const targetUrl = req.params.url;
 
   const targetProtocol = targetUrl.startsWith("https") ? https : http;
 
-  // Create a new request to the target server
   const targetRequest = targetProtocol.request(targetUrl, (targetResponse) => {
     res.writeHead(targetResponse.statusCode, targetResponse.headers);
     targetResponse.pipe(res, { end: true });
@@ -33,15 +36,18 @@ const server = http.createServer((req, res) => {
 
   targetRequest.on("error", (err) => {
     console.error(err);
-    res.writeHead(500, {
-      "Content-Type": "text/plain",
-    });
-    res.end("Proxy Error");
+    res.sendStatus(500);
   });
 
   req.pipe(targetRequest, { end: true });
 });
 
-server.listen(3000, () => {
-  console.log("Proxy server listening on port 3000");
+proxy.on("error", (err, req, res) => {
+  console.error(err);
+  res.sendStatus(500);
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Proxy server listening on port ${PORT}`);
 });
