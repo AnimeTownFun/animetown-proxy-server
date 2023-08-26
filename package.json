@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "http-proxy": "^1.18.1"
+  },
+  "name": "animetown-proxy-server",
+  "description": "Bypass CORS Block",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
