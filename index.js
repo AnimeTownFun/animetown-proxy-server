@@ -1,55 +1,13 @@
-const express = require("express");
-const http = require("http");
-const https = require("https");
-const httpProxy = require("http-proxy");
+const corsAnywhere = require("cors-anywhere");
 
-const app = express();
-const proxy = httpProxy.createProxyServer({});
+const host = "0.0.0.0";
+const port = 8080;
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
+const server = corsAnywhere.createServer();
+
+// Start the server
+server.listen(port, host, () => {
+  console.log(
+    `CORS Anywhere reverse proxy is running on http://${host}:${port}`
   );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
-app.all("/:url(*)", (req, res) => {
-  let targetUrl = req.params.url;
-
-  targetUrl = targetUrl.replace(/:\//g, "://");
-
-  const targetProtocol = targetUrl.startsWith("https") ? https : http;
-
-  const targetRequest = targetProtocol.request(targetUrl, (targetResponse) => {
-    res.writeHead(targetResponse.statusCode, targetResponse.headers);
-    targetResponse.pipe(res, { end: true });
-  });
-
-  targetRequest.on("error", (err) => {
-    console.error(err);
-    res.sendStatus(500);
-  });
-
-  req.pipe(targetRequest, { end: true });
-});
-
-proxy.on("error", (err, req, res) => {
-  console.error(err);
-  res.sendStatus(500);
-});
-
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Proxy server listening on port ${PORT}`);
 });
